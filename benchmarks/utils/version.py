@@ -1,27 +1,23 @@
 import subprocess
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
-
-def _get_submodule_sha(submodule_path: Path) -> str:
+def _get_sdk_sha_direct(sdk_path: Path) -> str:
+    """Get SHA directly from SDK directory using git rev-parse."""
     result = subprocess.run(
-        ["git", "submodule", "status", str(submodule_path)],
+        ["git", "rev-parse", "HEAD"],
+        cwd=sdk_path,
         capture_output=True,
         text=True,
         check=True,
     )
-    sha = result.stdout.strip().split()[0].lstrip("+-")
-    return sha
-
+    return result.stdout.strip()
 
 def get_sdk_sha() -> str:
-    """
-    Get the current git sha from the SDK submodule.
-    """
-    return _get_submodule_sha(PROJECT_ROOT / "vendor" / "software-agent-sdk")
-
+    """Get the SHA of the SDK submodule."""
+    sdk_path = PROJECT_ROOT / "vendor" / "software-agent-sdk"
+    return _get_sdk_sha_direct(sdk_path)
 
 SDK_SHA = get_sdk_sha()
 SDK_SHORT_SHA = SDK_SHA[:7]

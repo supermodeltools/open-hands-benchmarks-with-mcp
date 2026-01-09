@@ -217,10 +217,25 @@ class SWEBenchEvaluation(Evaluation):
             # Disable browser tools in CLI mode
             enable_browser=False,
         )
+
+        # MCP Configuration: Add Supermodel code graph analysis tools
+        mcp_config = {
+            "mcpServers": {
+                "supermodel": {
+                    "command": "npx",
+                    "args": ["-y", "@supermodeltools/mcp-server@0.4.1"],
+                    "env": {
+                        "SUPERMODELTOOLS_API_KEY": os.getenv("SUPERMODELTOOLS_API_KEY", "")
+                    }
+                }
+            }
+        }
+
         agent = Agent(
             llm=self.metadata.llm,
             tools=tools,
             system_prompt_kwargs={"cli_mode": True},
+            mcp_config=mcp_config,
             # TODO: we can enable condenser and security analyzer later
             # and have them configurable via EvalMetadata
             # condenser=get_default_condenser(
