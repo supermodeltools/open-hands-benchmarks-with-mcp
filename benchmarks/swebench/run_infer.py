@@ -223,7 +223,7 @@ class SWEBenchEvaluation(Evaluation):
             "mcpServers": {
                 "supermodel": {
                     "command": "npx",
-                    "args": ["-y", "@supermodeltools/mcp-server@0.4.1"],
+                    "args": ["-y", "@supermodeltools/mcp-server@0.4.4"],
                     "env": {
                         "SUPERMODELTOOLS_API_KEY": os.getenv("SUPERMODELTOOLS_API_KEY", "")
                     }
