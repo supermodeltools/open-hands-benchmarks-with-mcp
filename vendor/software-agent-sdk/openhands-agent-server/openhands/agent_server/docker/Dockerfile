@@ -65,11 +65,6 @@ RUN set -eux; \
         # Docker dependencies
         apt-transport-https gnupg lsb-release; \
     \
-    # Install Node.js 20 from NodeSource
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -; \
-    apt-get install -y nodejs; \
-    npm install -g npm@latest; \
-    \
     # Create user and group
     (getent group ${GID} || groupadd -g ${GID} ${USERNAME}); \
     (id -u ${USERNAME} >/dev/null 2>&1 || useradd -m -u ${UID} -g ${GID} -s /bin/bash ${USERNAME}); \
@@ -80,6 +75,14 @@ RUN set -eux; \
     mkdir -p /workspace/project; \
     chown -R ${USERNAME}:${USERNAME} /workspace; \
     rm -rf /var/lib/apt/lists/*
+# Pre-install Supermodel MCP server globally to avoid npx download timeout
+RUN npm install -g @supermodeltools/mcp-server@0.4.4 && \
+    npm cache clean --force
+
+
+# Pre-install Supermodel MCP server globally to avoid npx download timeout
+RUN npm install -g @supermodeltools/mcp-server@0.4.4 && \
+    npm cache clean --force
 
 # NOTE: we should NOT include UV_PROJECT_ENVIRONMENT here, 
 # since the agent might use it to perform other work (e.g. tools that use Python)
@@ -177,27 +180,12 @@ RUN set -eux; \
 # --- VNC + Desktop + noVNC ---
 RUN set -eux; \
   apt-get update; \
-    apt-get install -y --no-install-recommends \
-        ca-certificates curl wget sudo apt-utils git jq tmux build-essential \
-        coreutils util-linux procps findutils grep sed \
-        # Docker dependencies
-        apt-transport-https gnupg lsb-release; \
-    \
-    # Install Node.js 20 from NodeSource
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -; \
-    apt-get install -y nodejs; \
-    npm install -g npm@latest; \
-    \
-    # Create user and group
-    (getent group ${GID} || groupadd -g ${GID} ${USERNAME}); \
-    (id -u ${USERNAME} >/dev/null 2>&1 || useradd -m -u ${UID} -g ${GID} -s /bin/bash ${USERNAME}); \
-    # Add user to sudo group
-    usermod -aG sudo ${USERNAME}; \
-    echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers; \
-    # Create workspace directory
-    mkdir -p /workspace/project; \
-    chown -R ${USERNAME}:${USERNAME} /workspace; \
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y --no-install-recommends \
+    # GUI bits (remove entirely if headless)
+    tigervnc-standalone-server xfce4 dbus-x11 novnc websockify \
+    # Browser
+    $(if grep -q "ubuntu" /etc/os-release; then echo "chromium-browser"; else echo "chromium"; fi); \
+  apt-get clean; rm -rf /var/lib/apt/lists/*
 
 ENV NOVNC_WEB=/usr/share/novnc \
     NOVNC_PORT=8002 \
